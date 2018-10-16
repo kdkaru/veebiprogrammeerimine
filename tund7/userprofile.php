@@ -14,25 +14,25 @@
 	exit();
   }
   
+  
+  
 ?>
 
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-	<title>pealeht</title>
+	<title>profiil</title>
   </head>
   <body>
-    <h1>Pealeht</h1>
-	<p>See leht on valminud <a href="http://www.tlu.ee" target="_blank">TLÜ</a> õppetöö raames ja ei oma mingisugust, mõtestatud või muul moel väärtuslikku sisu.</p>
+    <h1>Profiili valimine</h1>
 	<hr>
 	<p>Oled sisse loginud nimega: <?php echo $_SESSION["firstName"] ." " .$_SESSION["lastName"] ."."; ?></p>
 	<ul>
-      <li><a href="?logout=1">Logi välja</a>!</li>
-	  <li>Süsteemi <a href="users.php">kasutajad</a>.</li>
-	  <li>Valideeri anonüümseid <a href="validatemsg.php">sõnumeid</a>!</li>
-	  <li>Näita valideeritud <a href="validatedmessages.php">sõnumeid</a> valideerijate kaupa!</li>
-	</ul>
+     <li><a href="main.php">Tagasi</a> pealehele!</li>
+	 <textarea rows="10" cols="80" name="description"><?php echo $mydescription; ?></textarea></br>
+	 <label>Minu valitud taustavärv: </label><input name="bgcolor" type="color" value="<?php echo $mybgcolor; ?>"><br>
+	 <label>Minu valitud tekstivärv: </label><input name="bgcolor" type="color" value="<?php echo $mybgcolor; ?>"><br>
 	
   </body>
 </html>

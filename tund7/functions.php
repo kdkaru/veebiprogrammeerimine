@@ -6,6 +6,75 @@
   
    //võtan kasutusele sessiooni
   session_start();
+ 
+  
+	  
+	  
+	  
+  }
+  
+  
+  //profiili lehele lugemiseks
+  
+  function getuserprofiles($userid) {
+	  $totalhtml = "";
+	  $mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+	  $stmt = $mysqli->prepare("SELECT id, firstname, lastname FROM vpusers");
+	  echo $mysqli->error;
+	 $mysqli->bind_param("i", $userid);
+	 $mysqli->bind_result($id, $userid, $description, $txtcolor, $bgcolor);
+	 
+	 $stmt=$mysqli->prepare("SELECT description, txtcolor, bgcolor FROM vpuserprofiles WHERE userid=?");
+	 
+	  
+	  
+	  
+	  
+	  
+  }
+  
+  
+  //kõigi valideeritud sõnumite lugemine kasutajate kaupa
+  function readallvalidatedmessagesbyuser(){
+	 $msghtml = "";
+	 $mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+	 $stmt = $mysqli->prepare("SELECT id, firstname, lastname FROM vpusers");
+	 echo $mysqli->error;
+	 $stmt->bind_result($idFromDb, $firstnameFromDb, $lastnameFromDb);
+	 
+	 $stmt2=$mysqli->prepare("SELECT message, accepted FROM vpamsg WHERE acceptedby=?");
+	 echo $mysqli->error;
+	 $stmt2->bind_param("i", $idFromDb);
+	 $stmt2->bind_result($msgFromDb, $acceptedFromDb);
+	 
+	 $stmt->execute();
+	 //et hoida andmebaasis loetud andmeid pisut rohkem mälus, et saaks edasi kasutada
+	 $stmt->store_result();
+	 while($stmt->fetch()){
+		 $msghtml .= "<h3>" .$firstnameFromDb ." " .$lastnameFromDb ."</h3> \n";
+		 $stmt2->execute();
+		 while($stmt2->fetch()){
+			$msghtml .= "<p><b>";
+			if($acceptedFromDb == 1) {
+				$msghtml .= "Lubatud: ";
+			} else {
+				$msghtml .= "Keelatud: ";
+			}
+			$msghtml .=	"</b>" .$msgFromDb ."</p> \n";
+		 }
+		 
+	 }
+	 
+	$stmt2->close();
+	$stmt->close();
+	$mysqli->close();
+	return $msghtml;
+	
+	
+	
+  }
+  
+  
   
   //kasutajate nimekiri
   function listusers(){
@@ -13,7 +82,7 @@
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
 	$stmt = $mysqli->prepare("SELECT firstname, lastname, email FROM vpusers WHERE id !=?");
 	
-	$mysqli->error;
+	echo $mysqli->error;
 	$stmt->bind_param("i", $_SESSION["userId"]);
 	$stmt->bind_result($firstname, $lastname, $email);
 	if($stmt->execute()){
@@ -51,7 +120,7 @@
 	return $html;
   }
   
-  function validatemsg($editId, $validation){
+   function validatemsg($editId, $validation){
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
 	$stmt = $mysqli->prepare("UPDATE vpamsg SET acceptedby=?, accepted=?, accepttime=now() WHERE id=?");
 	$stmt->bind_param("iii", $_SESSION["userId"], $validation, $editId);
@@ -66,7 +135,7 @@
 	$mysqli->close();
   }
   
-  //loen sõnumi valideerimiseks
+   //loen sõnumi valideerimiseks
   function readmsgforvalidation($editId){
 	$notice = "";
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
@@ -99,7 +168,6 @@
 	$mysqli->close();
 	return $notice;
   }
-  
   //sisselogimine
   function signin($email, $password){
 	$notice = "";
@@ -118,6 +186,12 @@
 		  $_SESSION["userId"] = $idFromDb;
 		  $_SESSION["firstName"] = $firstnameFromDb;
 		  $_SESSION["lastName"] = $lastnameFromDb;
+		  $profile = getuserprofile($idFromDb);
+		  
+		  $_SESSION["description"] = $description["description"];
+		  $_SESSION["txtcolor"] = $txtcolor["txtcolor"];
+		  $_SESSION["bgcolor"] = $bgcolor["bgcolor"];
+		  
 		  $stmt->close();
 	      $mysqli->close();
 		  header("Location: main.php");

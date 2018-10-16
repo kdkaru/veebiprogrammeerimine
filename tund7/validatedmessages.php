@@ -13,7 +13,7 @@
 	exit();
   }
   
-  $messages = readallunvalidatedmessages();
+  $messages = readallvalidatedmessagesbyuser();
 ?>
 <!DOCTYPE html>
 <html>
