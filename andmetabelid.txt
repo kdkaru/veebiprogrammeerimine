@@ -1,0 +1,2 @@
+//üleslaetavad fotod
+ALTER TABLE `vpphotos` CHANGE `id` `id` INT(11) NOT NULL AUTO_INCREMENT, CHANGE `alttext` `alttext` VARCHAR(256) CHARACTER SET utf8 COLLATE utf8_estonian_ci NULL, CHANGE `deleted` `deleted` DATE NULL;
