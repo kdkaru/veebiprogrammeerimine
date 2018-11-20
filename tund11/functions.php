@@ -6,11 +6,119 @@
   
    //võtan kasutusele sessiooni
   session_start();
+  
+  function  listprivatephotospage($privacy){
+		
+		$html = "";
+	//<img src="kataloog/fail" alt="tekst">	
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+    $stmt = $mysqli->prepare("SELECT filename, alttext FROM vpphotos WHERE privacy=3 AND deleted IS NULL ");
+	echo $mysqli->error;
+	$stmt->bind_param("i", $privacy);
+	$stmt->bind_result($filenameFromDb, $alttextFromDb);
+	$stmt->execute();
+	while($stmt->fetch()){
+		//<img src="kataloog/fail" alt="tekst">	
+		$html .= '<img src="' .$GLOBALS["thumbDir"] .$filenameFromDb .'" alt="' .$alttextFromDb .'">' ."\n";
+	}
+	if(empty($html)){
+		$html = "<p>Kahjuks avalikke pilte pole</p> \n";
+	}	
+	$stmt->close();
+	$mysqli->close();
+	return $html;
+	}
+	
+  
+	function listprivatephotos($privacy){
+		$html = "";
+	//<img src="kataloog/fail" alt="tekst">	
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+    $stmt = $mysqli->prepare("SELECT filename, alttext FROM vpphotos WHERE privacy=3 AND deleted IS NULL");
+	echo $mysqli->error;
+	$stmt->bind_param("i", $privacy);
+	$stmt->bind_result($filenameFromDb, $alttextFromDb);
+	$stmt->execute();
+	while($stmt->fetch()){
+		//<img src="kataloog/fail" alt="tekst">	
+		$html .= '<img src="' .$GLOBALS["thumbDir"] .$filenameFromDb .'" alt="' .$alttextFromDb .'">' ."\n";
+	}
+	if(empty($html)){
+		$html = "<p>Kahjuks avalikke pilte pole</p> \n";
+	}	
+	$stmt->close();
+	$mysqli->close();
+	return $html;
+	}
+  
+	function  listpublicphotospage($privacy){
+		
+		$html = "";
+	//<img src="kataloog/fail" alt="tekst">	
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+    $stmt = $mysqli->prepare("SELECT filename, alttext FROM vpphotos WHERE privacy<=? AND deleted IS NULL LIMIT 3, 6");
+	echo $mysqli->error;
+	$stmt->bind_param("i", $privacy);
+	$stmt->bind_result($filenameFromDb, $alttextFromDb);
+	$stmt->execute();
+	while($stmt->fetch()){
+		//<img src="kataloog/fail" alt="tekst">	
+		$html .= '<img src="' .$GLOBALS["thumbDir"] .$filenameFromDb .'" alt="' .$alttextFromDb .'">' ."\n";
+	}
+	if(empty($html)){
+		$html = "<p>Kahjuks avalikke pilte pole</p> \n";
+	}	
+	$stmt->close();
+	$mysqli->close();
+	return $html;
+	}
+	
+  
+	function listpublicphotos($privacy){
+		$html = "";
+	//<img src="kataloog/fail" alt="tekst">	
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+    $stmt = $mysqli->prepare("SELECT filename, alttext FROM vpphotos WHERE privacy<=? AND deleted IS NULL");
+	echo $mysqli->error;
+	$stmt->bind_param("i", $privacy);
+	$stmt->bind_result($filenameFromDb, $alttextFromDb);
+	$stmt->execute();
+	while($stmt->fetch()){
+		//<img src="kataloog/fail" alt="tekst">	
+		$html .= '<img src="' .$GLOBALS["thumbDir"] .$filenameFromDb .'" alt="' .$alttextFromDb .'">' ."\n";
+	}
+	if(empty($html)){
+		$html = "<p>Kahjuks avalikke pilte pole</p> \n";
+	}	
+	$stmt->close();
+	$mysqli->close();
+	return $html;
+	}
+  
+	function latestPicture($privacy){
+	$html = "";
+	//<img src="kataloog/fail" alt="tekst">	
+	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
+    $stmt = $mysqli->prepare("SELECT filename, alttext FROM vpphotos WHERE id=(SELECT MAX(id) FROM vpphotos WHERE privacy=? AND deleted IS NULL)");
+	echo $mysqli->error;
+	$stmt->bind_param("i", $privacy);
+	$stmt->bind_result($filenameFromDb, $alttextFromDb);
+	$stmt->execute();
+	if($stmt->fetch()){
+		$html = '<img src="' .$GLOBALS["picDir"] .$filenameFromDb .'" alt="' .$alttextFromDb .'">' ."\n";
+	} else {
+		$html = "<p>Kahjuks avalikke pilte pole</p>";
+	}
+	
+	$stmt->close();
+	$mysqli->close();
+	return $html;
+	}
  
-  function addUserPhotoData($fileName){
+    function addUserPhotoData($fileName){
 	$addedId = null;
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
-    $stmt = $mysqli->prepare("INSERT INTO vp_profilepic (userid, filename) VALUES (?, ?)");
+    $stmt = $mysqli->prepare("INSERT INTO vp_user_pictures (userid, filename) VALUES (?, ?)");
 	echo $mysqli->error;
 	$stmt->bind_param("is", $_SESSION["userId"], $fileName);
 	if($stmt->execute()){
@@ -24,24 +132,24 @@
 	$mysqli->close();
   }
   
-  function addPhotoData($fileName, $altText, $privacy) {
+  function addPhotoData($fileName, $altText, $privacy){
+    $notice = "";
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
 	$stmt = $mysqli->prepare("INSERT INTO vpphotos (userid, filename, alttext, privacy) VALUES (?, ?, ?, ?)");
 	echo $mysqli->error;
 	if(empty($privacy)){
-		$privacy = 3;
-		
-	}
+	  $privacy = 3;
+    }
 	$stmt->bind_param("issi", $_SESSION["userId"], $fileName, $altText, $privacy);
 	if($stmt->execute()){
-		echo "Andmebaasiga on ka korras";
-		} else {
-		echo "Andmebaasiga läks kehvasti";
-		}		
+	  $notice = "Andmed lisati andmebaasi!";
+	} else {
+      echo "Foto lisamisel andmebaasi tekkis tehniline viga: " .$stmt->error;
+	}
 	$stmt->close();
 	$mysqli->close();
- }
-  
+    return $notice;
+  }
   
   function readprofilecolors(){
 	$mysqli = new mysqli($GLOBALS["serverHost"], $GLOBALS["serverUsername"], $GLOBALS["serverPassword"], $GLOBALS["database"]);
